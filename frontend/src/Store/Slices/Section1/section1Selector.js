@@ -1,0 +1,1 @@
+export const section1Selector = (state)=>state.section1;
