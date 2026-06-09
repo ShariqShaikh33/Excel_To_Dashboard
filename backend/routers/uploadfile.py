@@ -12,6 +12,21 @@ router = APIRouter(
     tags=["Data Ingestion & Cleaning Pipeline"]
 )
 
+# =====================================================================
+# DEFINITIVE EMPLOYMENT STATUS WHITELIST (Strictly lowercase for matching)
+# =====================================================================
+VALID_EMPLOYMENT_STATUSES = {
+    "employed full-time (salaried)",
+    "employed part-time (salaried)",
+    "self-employed/entrepreneur",
+    "apprentice/intern",
+    "daily wage labourer/casual worker",
+    "homemaker",
+    "student",
+    "unemployed/currently seeking work",
+    "unspecified"
+}
+
 @router.post("/upload-excel")
 async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_db)):
     contents = await file.read()
@@ -71,14 +86,6 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
             if 'average_monthly_income' in df_hh.columns:
                 df_hh['average_monthly_income'] = pd.to_numeric(df_hh['average_monthly_income'], errors='coerce').fillna(0.0)
             
-            # if 'monthly_expenses_including_housing_and_food' in df_hh.columns:
-            #     df_hh['monthly_expenses_including_housing_and_food'] = pd.to_numeric(
-            #         df_hh['monthly_expenses_including_housing_and_food'], errors='coerce'
-            #     ).fillna(0.0)
-
-            # if 'members_age_18_to_40' in df_hh.columns:
-            #     df_hh['members_age_18_to_40'] = pd.to_numeric(df_hh['members_age_18_to_40'], errors='coerce').fillna(0).astype(int)
-
             if 'urgent_candidate_count' in df_hh.columns:
                 df_hh['urgent_candidate_count'] = pd.to_numeric(df_hh['urgent_candidate_count'], errors='coerce').fillna(0).astype(int)
 
@@ -94,7 +101,6 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
                 new_house = models.Household(
                     household_id=row_data.get("household_id"),
                     household_type=row_data.get("household_type"),
-                    # street_and_locality_name=row_data.get("street_and_locality_name"),
                     latitude=row_data.get("latitude"),
                     longitude=row_data.get("longitude"),
                     territory_name=row_data.get("territory_name"),
@@ -102,13 +108,9 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
                     pincode=row_data.get("pincode"),
                     willingness=row_data.get("willingness"),
                     average_monthly_income=row_data.get("average_monthly_income"),
-                    # monthly_expenses_including_housing_and_food=row_data.get("monthly_expenses_including_housing_and_food"),
-                    # members_age_18_to_40=row_data.get("members_age_18_to_40"),
                     urgent_candidate_count=row_data.get("urgent_candidate_count"),
                     status=row_data.get("status"),
                     created_by_name=row_data.get("created_by_name"),
-                    # supervisor_name=row_data.get("supervisor_name"),
-                    # household_rejected_reason=row_data.get("household_rejected_reason"),
                     hqs_score=row_data.get("hqs_score")
                 )
                 db.add(new_house)
@@ -133,6 +135,13 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
                 if text_col in df_cand.columns:
                     df_cand[text_col] = df_cand[text_col].astype(str).str.strip().str.lower()
                     df_cand[text_col] = df_cand[text_col].replace({'nan': None, '': None})
+
+            # 🛡️ VECTORIZED EMPLOYMENT STATUS FIREWALL FILTER
+            if 'employment_status' in df_cand.columns:
+                print("🛡️ Filtering rogue employment string tags...")
+                df_cand['employment_status'] = df_cand['employment_status'].apply(
+                    lambda val: val if val in VALID_EMPLOYMENT_STATUSES else None
+                )
 
             # Resilient Date Parsing Pipeline (Ages and Pyramids)
             if 'date_of_birth' in df_cand.columns:
@@ -165,15 +174,13 @@ async def upload_excel(file: UploadFile = File(...), db: Session = Depends(get_d
                     gender=row_data.get("gender"),
                     highest_education_level=row_data.get("highest_education_level"),
                     degree=row_data.get("degree"),
-                    # any_skill_certificate=row_data.get("any_skill_certificate"),
                     digital_tools_used=row_data.get("digital_tools_used"),
                     work_related_skills=row_data.get("work_related_skills"),
-                    # Resolves naming mismatch: maps file column 'preferred_job_roles' into DB column 'preferred_opportunity_mode'
                     preferred_opportunity_mode=row_data.get("preferred_job_roles"),
                     preferred_sectors=row_data.get("preferred_sectors"),
                     how_far_will_travel=row_data.get("how_far_will_travel"),
                     support_factors=row_data.get("support_factors"),
-                    employment_status=row_data.get("employment_status"),
+                    employment_status=row_data.get("employment_status"), # Cleaned value mapped here
                     main_reason_not_working=row_data.get("main_reason_not_working"),
                     monthly_income=row_data.get("monthly_income"),
                     hqs_score=row_data.get("hqs_score")

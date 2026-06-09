@@ -3,9 +3,12 @@ import { useEffect } from "react";
 import { CardComponent } from "../../../../common/CardComponent";
 import { fetchMetrics } from "../../../../../hook/fetchMetrics";
 import { setSection2DataReducer } from "../../../../../Store/Slices/Section2/section2Slice";
+import VerticalBarChartCard from "../../../../Charts/VerticalBarChart";
+import { section2Selector } from "../../../../../Store/Slices/Section2/section2Selector";
 
 function Section2() {
   const dispatch = useDispatch();
+  const section2Data = useSelector(section2Selector);
   
 
 useEffect(() => {
@@ -21,7 +24,16 @@ useEffect(() => {
 
 
   return (
-    <div>Section2</div>
+    <div className="grid grid-cols-1 gap-6 w-full">
+      <div className="col-span-1">
+        <VerticalBarChartCard
+          title="Academic Attainment Ladder"
+          data={section2Data.attainment_ladder}
+          xKey="level"
+          yKey="count"
+        />
+      </div>
+    </div>
   )
 }
 

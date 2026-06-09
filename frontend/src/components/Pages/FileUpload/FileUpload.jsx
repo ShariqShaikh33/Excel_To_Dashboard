@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router';
 
 function FileUpload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const navigate = useNavigate();
 
   const handleFileChange = (e) => setFile(e.target.files[0]);
 
@@ -20,7 +22,8 @@ function FileUpload() {
       });
 
       if (response.ok) {
-        alert("File uploaded and database updated successfully!");
+        // alert("File uploaded and database updated successfully!");
+        navigate("dashboard/section1")
       } else {
         alert("Upload failed.");
       }
