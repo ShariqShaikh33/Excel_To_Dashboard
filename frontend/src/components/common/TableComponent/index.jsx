@@ -1,61 +1,77 @@
-// src/components/Table.jsx
 import React from 'react';
 
-export default function TableComponent({ title, columns, data }) {
-  // Gracefully handle empty array buffers or load delays
-  if (!data || data.length === 0) {
+/**
+ * DataMatrixTable Component
+ * @param {Array<string>} headers - Header array labels, e.g., ["Status", "Male", "Female", "Other", "Total"]
+ * @param {Array<Object>} rows - Array of row items directly from your Redux store payload
+ * @param {Array<string>} keys - Array of object property keys to read in order, e.g., ["status", "male", "female", "other", "total"]
+ */
+function TableComponent({ headers, rows = [], keys = [] }) {
+  
+  // Safe fallback if data hasn't loaded or is structured incorrectly
+  if (!rows || rows.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-400 font-medium">
-        No records available to display.
+      <div className="w-full bg-white p-8 text-center rounded-2xl border border-slate-100 text-slate-400 font-medium text-sm">
+        No matrix data available to display.
       </div>
     );
   }
 
-  // Extract key strings from the custom props object structure
-  const columnKeys = Object.keys(columns);
-
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      {title && (
-        <div className="px-6 py-4 border-b border-gray-50">
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
-        </div>
-      )}
-      
+    <div className="w-full bg-white rounded-2xl border border-slate-100 shadow-xs overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          {/* 1. DYNAMIC HEADER GENERATION */}
-          <thead className="bg-gray-50/70 border-b border-gray-100">
+        <table className="w-full border-collapse text-left text-sm">
+          
+          {/* Table Sticky Header */}
+          <thead className="bg-slate-50/80 border-b border-slate-100 backdrop-blur-xs">
             <tr>
-              {columnKeys.map((key) => (
-                <th 
-                  key={key} 
-                  className="px-6 py-3 text-xs font-bold uppercase tracking-wider text-gray-500 whitespace-nowrap"
-                >
-                  {columns[key]}
-                </th>
-              ))}
+              {headers.map((header, idx) => {
+                // Style rule: First column aligns left (text labels), all numeric columns align center
+                const isFirstColumn = idx === 0;
+                const isLastColumn = idx === headers.length - 1;
+                
+                return (
+                  <th
+                    key={idx}
+                    className={`px-6 py-4 font-bold text-slate-500 uppercase tracking-wider text-[11px] ${
+                      isFirstColumn ? 'text-left' : 'text-center'
+                    } ${
+                      isLastColumn ? 'bg-slate-100/50 text-slate-700 font-extrabold' : ''
+                    }`}
+                  >
+                    {header}
+                  </th>
+                );
+              })}
             </tr>
           </thead>
 
-          {/* 2. DYNAMIC ROW ITERATION */}
-          <tbody className="divide-y divide-gray-50">
-            {data.map((row, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-gray-50/40 transition-colors">
-                {columnKeys.map((key) => {
-                  const rawValue = row[key];
-                  
-                  // Clean cell formatter for numbers, arrays, or text strings
-                  const renderedValue = typeof rawValue === 'number' 
-                    ? rawValue.toLocaleString() 
-                    : rawValue;
+          {/* Table Body */}
+          <tbody className="divide-y divide-slate-100/70">
+            {rows.map((row, rowIdx) => (
+              <tr
+                key={rowIdx}
+                className="hover:bg-slate-50/60 transition-colors duration-150 group"
+              >
+                {keys.map((key, keyIdx) => {
+                  const cellValue = row[key];
+                  const isFirstColumn = keyIdx === 0;
+                  const isLastColumn = keyIdx === keys.length - 1;
 
                   return (
-                    <td 
-                      key={key} 
-                      className="px-6 py-3.5 text-sm font-semibold text-gray-600 whitespace-nowrap"
+                    <td
+                      key={keyIdx}
+                      className={`px-6 py-3.5 whitespace-nowrap text-xs font-semibold ${
+                        isFirstColumn
+                          ? 'text-slate-700 font-bold capitalize text-left' // Format text label rows
+                          : 'text-slate-600 text-center'                     // Format metric count columns
+                      } ${
+                        // Visually highlight the aggregate column values on the far right
+                        isLastColumn ? 'bg-slate-50/40 text-slate-900 font-black border-l border-slate-50' : ''
+                      }`}
                     >
-                      {renderedValue !== undefined && renderedValue !== null ? renderedValue : '—'}
+                      {/* Formats native raw numbers with commas (e.g. 24050 -> 24,050) while preserving string categories */}
+                      {typeof cellValue === 'number' ? cellValue.toLocaleString() : cellValue}
                     </td>
                   );
                 })}
@@ -67,3 +83,5 @@ export default function TableComponent({ title, columns, data }) {
     </div>
   );
 }
+
+export default TableComponent;

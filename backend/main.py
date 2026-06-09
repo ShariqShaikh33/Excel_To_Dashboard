@@ -39,6 +39,9 @@ def get_sample_data(db: Session = Depends(get_db)):
 def pct_of(numerator, denominator):
     return func.round(cast(100.0 * numerator / func.nullif(denominator, 0), Float), 2)
 
+# models.Base.metadata.drop_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
+
 app.include_router(uploadfile.router)
 app.include_router(section1.router)
 app.include_router(section2.router)

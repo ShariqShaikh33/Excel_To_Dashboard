@@ -1,75 +1,65 @@
-# backend/models.py
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from database import Base
 
 class Household(Base):
     __tablename__ = "households"
 
-    # Excel Header: "Household ID"
     household_id = Column(String, primary_key=True, index=True)
-    
-    # Excel Header: "Household Type"
     household_type = Column(String, nullable=True)
     
-    # Excel Header: "District"
+    # NEW GEOGRAPHIC TRACKING
+    # street_and_locality_name = Column(String, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    territory_name = Column(String, nullable=True)
+    
     district = Column(String, nullable=True)
-    
-    # Excel Header: "Pincode"
     pincode = Column(String, nullable=True)
-    
-    # Excel Header: "Willingness"
     willingness = Column(String, nullable=True)
     
-    # Excel Header: "Average Monthly Income"
+    # ECONOMICS & VULNERABILITY
     average_monthly_income = Column(Float, default=0.0)
-    
-    # Excel Header: "Urgent Candidate Count"
+    # monthly_expenses_including_housing_and_food = Column(Float, default=0.0) # NEW
+    # members_age_18_to_40 = Column(Integer, default=0) # NEW
     urgent_candidate_count = Column(Integer, default=0)
     
-    # Excel Header: "Status"
+    # AUDIT TRAIL & SYSTEM CORES
     status = Column(String, nullable=True)
-    
-    # Excel Header: "HQS Score"
+    created_by_name = Column(String, nullable=True) # NEW
+    # supervisor_name = Column(String, nullable=True) # NEW
+    # household_rejected_reason = Column(String, nullable=True) # NEW
     hqs_score = Column(Float, nullable=True)
 
-    # Relationship back link to all candidates living in this household
     candidates = relationship("Candidate", back_populates="household", cascade="all, delete-orphan")
 
 
 class Candidate(Base):
     __tablename__ = "candidates"
 
-    # Excel Header: "Candidate ID"
     candidate_id = Column(String, primary_key=True, index=True)
-    
-    # Excel Header: "Household ID" (Foreign key relationship connecting to parent table)
     household_id = Column(String, ForeignKey("households.household_id", ondelete="CASCADE"), nullable=False)
-    
-    # Excel Header: "Name"
-    name = Column(String, nullable=True) # Changed to True to protect against empty rows
-    
-    # Excel Header: "Date of Birth"
-    date_of_birth = Column(Date, nullable=True) # Changed to True to handle missing data profiles safely
-    
-    # Excel Header: "Gender"
+    name = Column(String, nullable=True)
+    date_of_birth = Column(Date, nullable=True)
     gender = Column(String, nullable=True)
     
-    # Excel Header: "Highest Education Level"
+    # DYNAMIC SKILLS & EDUCATION EXPANSION
     highest_education_level = Column(String, nullable=True)
+    degree = Column(String, nullable=True) # NEW
+    # any_skill_certificate = Column(String, nullable=True) # NEW
+    digital_tools_used = Column(String, nullable=True) # NEW
+    work_related_skills = Column(String, nullable=True) # NEW
     
-    # Excel Header: "Employment Status"
+    # INTENT & COMMUTE METRICS
+    preferred_opportunity_mode = Column(String, nullable=True) # Maps Preferred Job Roles
+    preferred_sectors = Column(String, nullable=True) # NEW
+    how_far_will_travel = Column(String, nullable=True) # NEW
+    support_factors = Column(String, nullable=True) # NEW
+    
+    # EMPLOYMENT & BARRIERS TRACKING
     employment_status = Column(String, nullable=True)
-    
-    # Excel Header: "Monthly Income"
+    main_reason_not_working = Column(String, nullable=True) # NEW
     monthly_income = Column(Float, default=0.0)
-    
-    # Excel Header: "Preferred Job Roles" 
-    # (Maps directly over from 'preferred_job_roles' string extracted during upload)
-    preferred_opportunity_mode = Column(String, nullable=True)
-    
-    # Excel Header: "HQS Score"
     hqs_score = Column(Float, nullable=True)
 
-    # Relationship link attaching candidate profile up to their specific home entry
     household = relationship("Household", back_populates="candidates")
