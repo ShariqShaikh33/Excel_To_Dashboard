@@ -16,7 +16,7 @@ function FileUpload() {
 
     setUploading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/upload-excel', {
+      const response = await fetch('https://excel-to-dashboard-ijci.vercel.app/api/upload-excel', {
         method: 'POST',
         body: formData,
       });
