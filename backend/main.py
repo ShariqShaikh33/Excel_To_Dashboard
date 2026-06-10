@@ -12,14 +12,9 @@ import datetime
 
 app = FastAPI()
 
-origins = [
-    "http://localhost:5173",
-    "https://excel-to-dashboard-ijci.vercel.app/", # 👈 Add your Vercel URL here
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Allows your React server to connect seamlessly
+    allow_origins=["*"],  # Allows your React server to connect seamlessly
     allow_credentials=True,
     allow_methods=["*"],  # Allows all actions (GET, POST, etc.)
     allow_headers=["*"],
