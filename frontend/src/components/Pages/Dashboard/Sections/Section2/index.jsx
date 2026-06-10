@@ -5,6 +5,7 @@ import { fetchMetrics } from "../../../../../hook/fetchMetrics";
 import { setSection2DataReducer } from "../../../../../Store/Slices/Section2/section2Slice";
 import VerticalBarChartCard from "../../../../Charts/VerticalBarChart";
 import { section2Selector } from "../../../../../Store/Slices/Section2/section2Selector";
+import Heatmap from "../../../../Charts/Heatmap";
 
 function Section2() {
   const dispatch = useDispatch();
@@ -32,6 +33,16 @@ useEffect(() => {
           xKey="level"
           yKey="count"
         />
+      </div>
+      <div>
+        <Heatmap
+          title="Highest Education vs. Employment Status Hotspots"
+          xLabels={section2Data?.education_employment_matrix?.x_labels} 
+          yLabels={section2Data?.education_employment_matrix?.y_labels} 
+          data={section2Data?.education_employment_matrix?.matrix_data}
+          dataKey="level"
+        />
+        
       </div>
     </div>
   )

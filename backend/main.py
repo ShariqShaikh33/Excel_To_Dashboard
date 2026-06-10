@@ -9,7 +9,6 @@ import models
 from database import engine, get_db
 import datetime
 
-
 app = FastAPI()
 
 app.add_middleware(
